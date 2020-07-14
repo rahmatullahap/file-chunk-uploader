@@ -1,0 +1,44 @@
+{
+  "name": "file-chunk-uploader",
+  "version": "1.0.0",
+  "description": "File Uploader with chunk buffer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --inspect=5858 -r ts-node/register ./src/server.ts",
+    "start:watch": "nodemon",
+    "build": "tsc"
+  },
+  "author": "rahmatullah arrizal <rahmatullaharrizal@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@types/bson": "^4.0.2",
+    "base64-arraybuffer": "^0.2.0",
+    "express": "^4.17.1",
+    "faker": "^4.1.0",
+    "rc": "^1.2.8",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "@types/node": "^14.0.22",
+    "@types/ws": "^7.2.6",
+    "eslint": "^7.4.0",
+    "eslint-plugin-import": "^2.22.0",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+    ],
+    "watch": [
+      "src"
+    ],
+    "exec": "npm start",
+    "ext": "ts"
+  }
+}
