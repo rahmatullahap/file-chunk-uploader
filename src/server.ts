@@ -2,10 +2,12 @@ import * as express from "express";
 import * as http from "http";
 import * as WebSocket from "ws";
 import * as fs from "fs";
-import { random } from "faker/locale/id_ID";
+import { random } from "faker";
 import { config } from "./config";
+import { MinioConnection } from "./minio";
+import { createNodeLogger } from "./logger";
 
-const { LOG_LEVEL, PORT, TEMP_DIR } = config;
+const { LOG_LEVEL, PORT, TEMP_DIR, MINIO_ENDPOINT } = config;
 
 export interface UploadFileRequest {
   id: string;
@@ -14,7 +16,7 @@ export interface UploadFileRequest {
   size: number;
   filename: string;
 }
-
+const logger = createNodeLogger(LOG_LEVEL);
 const app = express();
 
 app.get("/", (req, res) => {
@@ -25,21 +27,34 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 wss.on("connection", (ws: WebSocket, req) => {
+  let url = req.url;
+  const token = url.substr(url.indexOf("access_token") + 13, url.length);
   let filename = "";
   let writer: fs.WriteStream;
   let totalSize = 0;
   let ext = "";
-  ws.on("message", (message: string) => {
+  ws.on("message", async (message: string) => {
     const request: UploadFileRequest = JSON.parse(message);
     if (request.type === "end") {
+      writer.close();
+      const minio = new MinioConnection(logger, token);
+      let result = '';
+      try {
+        const file = await fs.promises.readFile(TEMP_DIR + "/" + filename);
+        const resultName = await minio.putObject(file, filename);
+        result = MINIO_ENDPOINT + "/" + resultName;
+        fs.unlink(TEMP_DIR + "/" + filename, () => {});
+      } catch (error) {
+        ws.close(1001, error);
+        fs.unlink(TEMP_DIR + "/" + filename, () => {});
+      }
       ws.send(
         JSON.stringify({
           data: {
-            file_url: filename,
+            file_url: result,
           },
         })
       );
-      writer.close();
     } else {
       if (request.type === "start") {
         totalSize = 0;
@@ -47,7 +62,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         ext = "." + filename.split(".").pop();
         const tempname = random.alphaNumeric(40); // temporary file, read file purpose
         filename = tempname + ext;
-        writer = fs.createWriteStream(TEMP_DIR + '/' + filename);
+        writer = fs.createWriteStream(TEMP_DIR + "/" + filename);
       }
       let buf: ArrayBuffer;
       if (typeof Buffer.from === "function") {
@@ -63,16 +78,16 @@ wss.on("connection", (ws: WebSocket, req) => {
   ws.on("error", () => {
     writer.close();
     // remove file
-    fs.unlink(TEMP_DIR + '/' + filename, () => {});
+    fs.unlink(TEMP_DIR + "/" + filename, () => {});
   });
 
   ws.on("close", () => {
     writer.close();
     // remove file
-    fs.unlink(TEMP_DIR + '/' + filename, () => {});
+    fs.unlink(TEMP_DIR + "/" + filename, () => {});
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`Server is running in http://localhost:${PORT}`);
+  logger.debug(`Server is running in http://localhost:${PORT}`)
 });

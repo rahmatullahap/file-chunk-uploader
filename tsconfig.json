@@ -1,15 +1,33 @@
 {
+    "compileOnSave": false,
     "compilerOptions": {
-        "target": "es6",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
         "module": "commonjs",
-        "outDir": "dist",
-        "sourceMap": true
+        "target": "es2017",
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "strict": false,
+        "experimentalDecorators": true,
+        "lib": [
+            "dom",
+            "es2017",
+            "esnext.asynciterable"
+        ],
+        "sourceMap": true,
+        "inlineSourceMap": false,
+        "rootDir": "./src",
+        "outDir": "./dist",
+        "baseUrl": ".",
+        "typeRoots": [
+            "node_modules/@types",
+            "src/@types"
+        ],
     },
-    "include": [
-        "src/**/*.ts"
-    ],
     "exclude": [
         "node_modules",
+        "dist",
         ".vscode"
     ]
 }
