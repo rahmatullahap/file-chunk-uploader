@@ -5,6 +5,7 @@ export interface Config {
   LOG_LEVEL: DebugLevel;
   PORT: string;
   TEMP_DIR: string;
+  STORAGE_URL: string;
   MINIO_ENDPOINT: string;
 	MINIO_ACCESS_ID: string;
 	MINIO_ACCESS_SECRET: string;
@@ -16,6 +17,7 @@ export const configDefault: Config = {
   LOG_LEVEL: 'info',
   PORT: '7223',
   TEMP_DIR: './temp',
+  STORAGE_URL: 'http://localhost:7191',
   MINIO_ENDPOINT: 'localhost:9000',
 	MINIO_ACCESS_ID: '',
 	MINIO_ACCESS_SECRET: '',

@@ -7,7 +7,7 @@ import { config } from "./config";
 import { MinioConnection } from "./minio";
 import { createNodeLogger } from "./logger";
 
-const { LOG_LEVEL, PORT, TEMP_DIR, MINIO_ENDPOINT } = config;
+const { LOG_LEVEL, PORT, TEMP_DIR, STORAGE_URL } = config;
 
 export interface UploadFileRequest {
   id: string;
@@ -42,7 +42,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       try {
         const file = await fs.promises.readFile(TEMP_DIR + "/" + filename);
         const resultName = await minio.putObject(file, filename);
-        result = MINIO_ENDPOINT + "/" + resultName;
+        result = STORAGE_URL + "/" + resultName;
         fs.unlink(TEMP_DIR + "/" + filename, () => {});
       } catch (error) {
         ws.close(1001, error);
@@ -76,13 +76,17 @@ wss.on("connection", (ws: WebSocket, req) => {
   });
 
   ws.on("error", () => {
-    writer.close();
+    if (writer) {
+      writer.close();
+    }
     // remove file
     fs.unlink(TEMP_DIR + "/" + filename, () => {});
   });
 
   ws.on("close", () => {
-    writer.close();
+    if (writer) {
+      writer.close();
+    }
     // remove file
     fs.unlink(TEMP_DIR + "/" + filename, () => {});
   });

@@ -11,7 +11,10 @@ const {
   MINIO_SSL,
 } = config;
 
-const [MINIO_URL, MINIO_PORT] = MINIO_ENDPOINT.split(":");
+const endpoints = MINIO_ENDPOINT.split(":");
+
+const MINIO_PORT = endpoints.pop();
+const MINIO_URL = endpoints.join(':');
 
 export class MinioConnection {
   minioClient = new Minio.Client({
@@ -44,8 +47,7 @@ export class MinioConnection {
         filename,
         file
       );
-      const dir = this.provider_id + '/' + filename;
-      return dir;
+      return filename;
     } catch (error) {
       this.logger.error(error);
     }
